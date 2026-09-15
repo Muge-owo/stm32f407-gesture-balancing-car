@@ -1,0 +1,77 @@
+# ============================================================
+# Keil MDK / ARM build output
+# ============================================================
+
+# Keil puts compiler, linker and listing output in these folders.
+# The ** form also covers future car/controller subprojects.
+**/Objects/
+**/Listings/
+
+# Build products that may be generated outside the folders above
+*.axf
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.lnp
+*.dep
+*.d
+*.o
+*.obj
+*.crf
+*.iex
+*.tra
+*.plg
+*.rpt
+*.mpf
+*.mpj
+*.omf
+*.__i
+
+# Keil build reports
+*.build_log.htm
+
+# ============================================================
+# Keil per-user state and debugger logs
+# ============================================================
+
+# Window layout, breakpoints, watch windows and other local UI state
+*.uvguix.*
+
+# Debug probe / flashing logs and local settings
+JLinkLog.txt
+JLinkSettings.ini
+ST-LINK_Log.txt
+
+# ============================================================
+# Temporary and backup files
+# ============================================================
+
+*.bak
+*.tmp
+*.orig
+*.rej
+*~
+
+# ============================================================
+# Operating-system files
+# ============================================================
+
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ============================================================
+# Optional tools/scripts generated files
+# ============================================================
+
+__pycache__/
+*.py[cod]
+.venv/
+
+# Keep these important project files under version control:
+#   *.uvprojx       Keil project definition
+#   *.uvoptx        current project/debug options (kept intentionally)
+#   *.sct           hand-written scatter files, if added later
+#   Project/RTE/    startup and device configuration generated for the target
