@@ -4,6 +4,7 @@
 // ****** System ****** //
 #include "delay.h"
 #include "timer.h"
+#include "i2c.h"
 
 
 // ****** Hardware ****** //
@@ -20,7 +21,7 @@ int main(void)
 }
 
 
-/** ·Ç×èÈû°´¼ü KEY ²âÊÔ³ÌĞò **/
+/** éé˜»å¡æŒ‰é”® KEY æµ‹è¯•ç¨‹åº **/
 //uint16_t tim6_cnt = 0;
 //int main(void)
 //{
@@ -58,7 +59,7 @@ int main(void)
 //}
 
 
-/** TIM6²âÊÔ³ÌĞò(ÓÃÓÚ³ÌĞò·Ç×èÈû) **/
+/** TIM6æµ‹è¯•ç¨‹åº(ç”¨äºç¨‹åºéé˜»å¡) **/
 //volatile static uint16_t tim6_cnt = 0;
 //int main(void)
 //{
@@ -87,7 +88,7 @@ int main(void)
 
 
 
-/** LED²âÊÔ³ÌĞò **/
+/** LEDæµ‹è¯•ç¨‹åº **/
 //int main(void)
 //{
 //	delay_init();

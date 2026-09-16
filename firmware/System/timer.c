@@ -3,7 +3,7 @@
 
 void TIM6_Init(void)
 {
-	// APB1×ÜÏß PCLK1 MAX = 42MHz --> TIM6 = 84MHz
+	// APB1æ€»çº¿ PCLK1 MAX = 42MHz --> TIM6 = 84MHz
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
 
 	TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
