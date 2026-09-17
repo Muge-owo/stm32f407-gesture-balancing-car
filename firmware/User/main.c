@@ -3,41 +3,70 @@
 
 
 // ****** System ****** //
-#include "delay.h"
-#include "timer.h"
-#include "i2c.h"
+#include "delay.h"		// SysTick
+#include "timer.h"		// TIM6
+#include "i2c.h"		// I2C1		PB8\PB9
 
 
 // ****** Hardware ****** //
-#include "led.h"
-#include "key.h"
-#include "mpu6050.h"
+#include "led.h"		// PA6\PA7
+#include "key.h"		// PE3\PE4
+#include "mpu6050.h"	// [I2C1(PB8\PB9)]
+#include "encoder.h"	// TIM4		PB6\PB7		; TIM3		PA6\PA7
+
+
+int main(void)
+{
+
+	while(1)
+	{
+	
+	
+	}
+}
+
+
+
+/** Encoder编码器读取 测试程序 **/
+//int main(void)
+//{
+//	Encoder_Init();
+//	
+//	volatile int16_t encoder1_cnt = 0;
+//	volatile int16_t encoder2_cnt = 0;
+
+//	while(1)
+//	{
+//		encoder1_cnt = Encoder_GetCNT(1);
+//		encoder2_cnt = Encoder_GetCNT(0);
+//	}
+//}
 
 
 /** 硬件 mpu6050 测试程序 **/
-int main(void)
-{
-	I2C1_Init();
-	uint8_t initState = MPU6050_Init();
-	delay_init();
-	
-	if(initState != 0)
-	{
-		while(1)
-		{
-			//初始化失败
-		}
-	}
-	
-	int16_t AX, AY, AZ;
-	int16_t GX, GY, GZ;
-	
-	while(1)
-	{
-		MPU6050_GetData(&AX, &AY, &AZ, &GX, &GY, &GZ);
-		delay_ms(5);
-	}
-}
+//int main(void)
+//{
+//	I2C1_Init();
+//	uint8_t initState = MPU6050_Init();
+//	delay_init();
+//	
+//	if(initState != 0)
+//	{
+//		while(1)
+//		{
+//			//初始化失败
+//		}
+//	}
+//	
+//	int16_t AX, AY, AZ;
+//	int16_t GX, GY, GZ;
+//	
+//	while(1)
+//	{
+//		MPU6050_GetData(&AX, &AY, &AZ, &GX, &GY, &GZ);
+//		delay_ms(5);
+//	}
+//}
 
 
 /** 硬件I2C收发功能 测试程序 **/

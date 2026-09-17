@@ -410,6 +410,16 @@
               <FileType>5</FileType>
               <FilePath>..\Hardware\mpu6050.h</FilePath>
             </File>
+            <File>
+              <FileName>encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Hardware\encoder.c</FilePath>
+            </File>
+            <File>
+              <FileName>encoder.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Hardware\encoder.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
