@@ -11,6 +11,9 @@ void LED_Init(void)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	
+	GPIO_SetBits(GPIOA, GPIO_Pin_6);
+	GPIO_SetBits(GPIOA, GPIO_Pin_7);
 }
 
 void LED1_SetState(uint8_t state)

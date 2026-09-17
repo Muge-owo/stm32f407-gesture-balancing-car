@@ -79,7 +79,7 @@ void I2C1_SendByte(uint8_t addr, uint8_t regAddr, uint8_t data)
 * @param (in)data: 要写入的数据(数组)
 * @param (in)data_len: 要写入的数据长度
 */
-void I2C1_SendBytes(uint8_t addr, uint8_t regAddr, const char *data, uint32_t data_len)
+void I2C1_SendBytes(uint8_t addr, uint8_t regAddr, const unsigned char *data, uint32_t data_len)
 {
 	I2C_GenerateSTART(I2C1, ENABLE);
 	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT);
@@ -149,7 +149,7 @@ uint8_t I2C1_ReadByte(uint8_t addr, uint8_t regAddr)
 * @param (out)data: 存放数据的数组
 * @param (in)data_len: 要写入的数据长度
 */
-void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, char *data, uint32_t data_len)
+void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t data_len)
 {
 	if(data_len == 0)
 	{
