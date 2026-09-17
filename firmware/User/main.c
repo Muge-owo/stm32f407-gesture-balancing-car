@@ -6,6 +6,7 @@
 #include "delay.h"		// SysTick
 #include "timer.h"		// TIM6
 #include "i2c.h"		// I2C1		PB8\PB9
+#include "pwm.h"		// TIM5		PA0\PA1
 
 
 // ****** Hardware ****** //
@@ -15,16 +16,47 @@
 #include "encoder.h"	// TIM4		PB6\PB7		; TIM3		PA6\PA7
 
 
-int main(void)
-{
-
-	while(1)
-	{
-	
-	
-	}
-}
-
+/** PWM 测试程序 **/
+//int main(void)
+//{
+//	TIM6_Init();
+//	Key_Init();
+//	PWM_Init();
+//	
+//	volatile uint8_t key_num;
+//	volatile uint16_t pwm1_ccr = 0, pwm2_ccr = 0;
+//	volatile uint16_t get_pwm1_ccr, get_pwm2_ccr, get_pwm_arr, get_pwm_psc;
+//	while(1)
+//	{
+//		key_num = Key_GetNum();
+//		if(key_num == 1)
+//		{
+//			pwm1_ccr += 100;
+//			if(pwm1_ccr > 1000)
+//				pwm1_ccr = 0;
+//			PWM_SetCompare1(pwm1_ccr);
+//		}
+//		else if(key_num == 2)
+//		{
+//			pwm2_ccr += 100;
+//			if(pwm2_ccr > 1000)
+//				pwm2_ccr = 0;
+//			PWM_SetCompare2(pwm2_ccr);
+//		}
+//		get_pwm1_ccr = PWM_GetCompare1();
+//		get_pwm2_ccr = PWM_GetCompare2();
+//		get_pwm_arr = PWM_GetPeriodCounts();
+//		get_pwm_psc = PWM_GetPrescaler();
+//	}
+//}
+//void TIM6_DAC_IRQHandler(void)
+//{
+//	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+//	{
+//		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+//		Key_Tick();
+//	}
+//}
 
 
 /** Encoder编码器读取 测试程序 **/

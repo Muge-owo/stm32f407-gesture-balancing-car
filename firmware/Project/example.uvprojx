@@ -460,6 +460,16 @@
               <FileType>5</FileType>
               <FilePath>..\System\system.h</FilePath>
             </File>
+            <File>
+              <FileName>pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\System\pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\System\pwm.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

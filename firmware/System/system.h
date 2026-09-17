@@ -9,6 +9,7 @@
 #include "delay.h"
 #include "timer.h"
 #include "i2c.h"
+#include "pwm.h"
 
 
 #endif
