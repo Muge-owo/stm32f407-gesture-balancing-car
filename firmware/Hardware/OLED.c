@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "delay.h"
+#include "system.h"
 
 /**
   * 数据存储格式：
@@ -119,7 +119,7 @@ void OLED_W_SDA(uint8_t BitValue)
 	/*根据BitValue的值，将SDA置高电平或者低电平*/
 	GPIO_WriteBit(GPIOB, GPIO_Pin_11, (BitAction)BitValue);
 	
-	delay_us(2);
+	delay_us(1);
 	/*如果单片机速度过快，可在此添加适量延时，以避免超出I2C通信的最大速度*/
 	//...
 }
@@ -218,11 +218,13 @@ void OLED_I2C_SendByte(uint8_t Byte)
   */
 void OLED_WriteCommand(uint8_t Command)
 {
-	OLED_I2C_Start();				//I2C起始
-	OLED_I2C_SendByte(0x78);		//发送OLED的I2C从机地址
-	OLED_I2C_SendByte(0x00);		//控制字节，给0x00，表示即将写命令
-	OLED_I2C_SendByte(Command);		//写入指定的命令
-	OLED_I2C_Stop();				//I2C终止
+//	OLED_I2C_Start();				//I2C起始
+//	OLED_I2C_SendByte(0x78);		//发送OLED的I2C从机地址
+//	OLED_I2C_SendByte(0x00);		//控制字节，给0x00，表示即将写命令
+//	OLED_I2C_SendByte(Command);		//写入指定的命令
+//	OLED_I2C_Stop();				//I2C终止
+	
+	I2C1_SendByte(0x78, 0x00, Command);
 }
 
 /**
@@ -233,17 +235,19 @@ void OLED_WriteCommand(uint8_t Command)
   */
 void OLED_WriteData(uint8_t *Data, uint8_t Count)
 {
-	uint8_t i;
+//	uint8_t i;
+//	
+//	OLED_I2C_Start();				//I2C起始
+//	OLED_I2C_SendByte(0x78);		//发送OLED的I2C从机地址
+//	OLED_I2C_SendByte(0x40);		//控制字节，给0x40，表示即将写数据
+//	/*循环Count次，进行连续的数据写入*/
+//	for (i = 0; i < Count; i ++)
+//	{
+//		OLED_I2C_SendByte(Data[i]);	//依次发送Data的每一个数据
+//	}
+//	OLED_I2C_Stop();				//I2C终止
 	
-	OLED_I2C_Start();				//I2C起始
-	OLED_I2C_SendByte(0x78);		//发送OLED的I2C从机地址
-	OLED_I2C_SendByte(0x40);		//控制字节，给0x40，表示即将写数据
-	/*循环Count次，进行连续的数据写入*/
-	for (i = 0; i < Count; i ++)
-	{
-		OLED_I2C_SendByte(Data[i]);	//依次发送Data的每一个数据
-	}
-	OLED_I2C_Stop();				//I2C终止
+	I2C1_SendBytes(0x78, 0x40, Data, Count);
 }
 
 /*********************通信协议*/
@@ -259,7 +263,7 @@ void OLED_WriteData(uint8_t *Data, uint8_t Count)
   */
 void OLED_Init(void)
 {
-	OLED_GPIO_Init();			//先调用底层的端口初始化
+//	OLED_GPIO_Init();			//先调用底层的端口初始化
 	
 	/*写入一系列的命令，对OLED进行初始化配置*/
 	OLED_WriteCommand(0xAE);	//设置显示开启/关闭，0xAE关闭，0xAF开启

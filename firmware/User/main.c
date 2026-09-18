@@ -21,6 +21,9 @@
 /** OLED 测试程序 **/
 int main(void)
 {
+	I2C1_Init();
+	delay_ms(1);
+	
 	OLED_Init();
 	
 	
