@@ -6,7 +6,7 @@
 #include "delay.h"		// SysTick
 #include "timer.h"		// TIM6
 #include "i2c.h"		// I2C1		PB8\PB9
-#include "pwm.h"		// TIM5		PA0\PA1
+#include "pwm.h"		// TIM5		PA0(Ch1)\PA1(Ch2)
 
 
 // ****** Hardware ****** //
@@ -14,6 +14,44 @@
 #include "key.h"		// PE3\PE4
 #include "mpu6050.h"	// [I2C1(PB8\PB9)]
 #include "encoder.h"	// TIM4		PB6\PB7		; TIM3		PA6\PA7
+#include "motor.h"		// PD8\PD9	PD10\PD11
+
+/** Motor 测试程序 **/
+int main(void)
+{
+	TIM6_Init();
+	Key_Init();
+	Motor_Init();
+	
+	volatile uint8_t key_num;
+	volatile int16_t pwm1_ccr = 0;
+	while(1)
+	{
+		key_num = Key_GetNum();
+		if(key_num == 1)
+		{
+			pwm1_ccr += 200;
+			if(pwm1_ccr > 1000)
+				pwm1_ccr = 1000;
+		}
+		else if(key_num == 2)
+		{
+			pwm1_ccr -= 200;
+			if(pwm1_ccr < -1000)
+				pwm1_ccr = -1000;
+		}
+		
+		Motor_SetPWM(0, pwm1_ccr);
+	}
+}
+void TIM6_DAC_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+	{
+		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+		Key_Tick();
+	}
+}
 
 
 /** PWM 测试程序 **/
