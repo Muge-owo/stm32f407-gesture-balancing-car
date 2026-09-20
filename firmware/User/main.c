@@ -1,12 +1,14 @@
 // main.c
 #include "stm32f4xx.h"
-
+#include <stdio.h>
+#include <string.h>
 
 // ****** System ****** //
 #include "delay.h"		// SysTick
 #include "timer.h"		// TIM6
-#include "i2c.h"		// I2C1		PB8\PB9
+#include "i2c.h"		// I2C1		PB8(SCL)\PB9(SDA)
 #include "pwm.h"		// TIM5		PA0(Ch1)\PA1(Ch2)
+#include "uart.h"		// USART1	PA9(TX)\PA10(RX)
 
 
 // ****** Hardware ****** //
@@ -18,57 +20,78 @@
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
 
-
-/** Encoder编码器与LED引脚冲突问题修复 测试程序 **/
-volatile uint16_t OLED_Cnt = 0;
+/** USART通信 测试程序 **/
 int main(void)
 {
+	usart1_Init(9600);
 	delay_init();
-	TIM6_Init();
 	
-	Encoder_Init();
-	LED_Init();
-	I2C1_Init();
+	uint8_t str[100] = "Hello World\r\n";
 	
-	delay_ms(100);
-	OLED_Init();
-
-	int16_t encoder1_cnt = 0;
-	int16_t encoder2_cnt = 0;
+	
+	usart1_SendByte('a');
+	usart1_SendArray(str, strlen((char *)str));
+	usart1_printf("KoToShi :%4d \r\n", 2026);
 	while(1)
 	{
-		encoder1_cnt = Encoder_GetCNT(0);
-		encoder2_cnt = Encoder_GetCNT(1);
-	
-		if(encoder1_cnt > 0)
+		if(usart1_GetFlag() == 1)
 		{
-			LED1_SetState(1);
-			LED2_SetState(1);
-		}
-		else
-		{
-			LED1_SetState(0);
-			LED2_SetState(0);
-		}
-		
-		if(OLED_Cnt >= 200)
-		{
-			OLED_Cnt = 0;
-			
-			OLED_Printf(0, 0, OLED_6X8, "encoder1:%+06d", encoder1_cnt);
-			OLED_Printf(0, 8, OLED_6X8, "encoder2:%+06d", encoder2_cnt);
-			OLED_Update();
+			usart1_printf("RxData: %s\r\n", usart1_rxdata);
 		}
 	}
 }
-void TIM6_DAC_IRQHandler(void)
-{
-	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
-	{
-		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
-		OLED_Cnt++;
-	}
-}
+
+
+/** Encoder编码器与LED引脚冲突问题修复 测试程序 **/
+//volatile uint16_t OLED_Cnt = 0;
+//int main(void)
+//{
+//	delay_init();
+//	TIM6_Init();
+//	
+//	Encoder_Init();
+//	LED_Init();
+//	I2C1_Init();
+//	
+//	delay_ms(100);
+//	OLED_Init();
+
+//	int16_t encoder1_cnt = 0;
+//	int16_t encoder2_cnt = 0;
+//	while(1)
+//	{
+//		encoder1_cnt = Encoder_GetCNT(0);
+//		encoder2_cnt = Encoder_GetCNT(1);
+//	
+//		if(encoder1_cnt > 0)
+//		{
+//			LED1_SetState(1);
+//			LED2_SetState(1);
+//		}
+//		else
+//		{
+//			LED1_SetState(0);
+//			LED2_SetState(0);
+//		}
+//		
+//		if(OLED_Cnt >= 200)
+//		{
+//			OLED_Cnt = 0;
+//			
+//			OLED_Printf(0, 0, OLED_6X8, "encoder1:%+06d", encoder1_cnt);
+//			OLED_Printf(0, 8, OLED_6X8, "encoder2:%+06d", encoder2_cnt);
+//			OLED_Update();
+//		}
+//	}
+//}
+//void TIM6_DAC_IRQHandler(void)
+//{
+//	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+//	{
+//		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+//		OLED_Cnt++;
+//	}
+//}
 
 
 /** OLED 测试程序 **/
