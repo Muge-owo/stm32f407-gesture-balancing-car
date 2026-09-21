@@ -98,13 +98,13 @@ void USART1_IRQHandler(void)
 		USART_ClearITPendingBit(USART1, USART_IT_RXNE);
 		
 		data = USART_ReceiveData(USART1);
-		if(data == '#' && usart1_rxstate == 0)
+		if(data == '[' && usart1_rxstate == 0)
 		{
 			usart1_rxstate = 1;
 		}
 		else if(usart1_rxstate == 1)
 		{
-			if(data != '\r')
+			if(data != ']')
 			{
 				usart1_rxdata[usart1_rxcnt++] = data;
 				if(usart1_rxcnt >= USART1_RXBUF_SIZE - 1)
@@ -114,22 +114,10 @@ void USART1_IRQHandler(void)
 			}
 			else
 			{
-				usart1_rxstate = 2;
-			}
-		}
-		else if(usart1_rxstate == 2)
-		{
-			if(data == '\n')
-			{
 				usart1_rxdata[usart1_rxcnt] = '\0';
+				usart1_rxstate = 0;
 				usart1_rxflag = 1;
 			}
-			else
-			{
-				usart1_rxdata[0] = '\0';
-				usart1_rxcnt = 0;
-			}
-			usart1_rxstate = 0;
 		}
 		else
 		{

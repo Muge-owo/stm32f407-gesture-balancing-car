@@ -2,6 +2,7 @@
 #include "stm32f4xx.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 
 // ****** System ****** //
@@ -21,57 +22,93 @@
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
 
-/** MPU6050互补滤波 测试程序 **/
-volatile uint16_t uart1_SendCnt = 0;	// uart1发送计数器(每隔50ms发送一次数据)
-int16_t AX, AY, AZ, GX, GY, GZ;					// MPU6050采集的加速度、陀螺仪数据
-float Angle = 0, AngleAcc = 0 ,AngleGyro = 0;	// 互补角度、 加速度角度、 陀螺仪角度
-float Alpha = 0.01;								// 互补系数
-
+/** 蓝牙数据包接收 测试程序 **/
 int main(void)
 {
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-	
-	delay_init();
-	I2C1_Init();
-	MPU6050_Init();
 	usart1_Init(9600);
-	
-	TIM6_Init();
 	
 	while(1)
 	{
-		if(uart1_SendCnt >= 50)
+		if(usart1_GetFlag() == 1)
 		{
-			uart1_SendCnt = 0;
-
-			usart1_printf("Acc:[%d, %d, %d]\r\n", AX, AY, AZ);
-			usart1_printf("Gyro:[%d, %d, %d]\r\n", GX, GY, GZ);
-			usart1_printf("[plot,%f,%f,%f]\r\n", AngleAcc, AngleGyro, Angle);
+			usart1_printf("rxdata: %s\r\n", usart1_rxdata);
+			char *Tag = strtok(usart1_rxdata, ",");
+			if(strcmp(Tag, "key") == 0)
+			{
+				char *Name = strtok(NULL, ",");
+				char *Action = strtok(NULL, ",");
+				
+			}
+			else if(strcmp(Tag, "slider") == 0)
+			{
+				char *Name = strtok(NULL, ",");
+				char *Value = strtok(NULL, ",");
+			
+			}
+			else if(strcmp(Tag, "joystick") == 0)
+			{
+				int8_t LH = atoi(strtok(NULL, ","));
+				int8_t LV = atoi(strtok(NULL, ","));
+				int8_t RH = atoi(strtok(NULL, ","));
+				int8_t RV = atoi(strtok(NULL, ","));
+				usart1_printf("joystick:%d, %d, %d, %d\r\n", LH, LV, RH, RV);
+			}
 		}
 	}
 }
-void TIM6_DAC_IRQHandler(void)
-{
-	static uint16_t count_mpu = 0;	// MPU采集计时器
 
-	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
-	{
-		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
-		
-		uart1_SendCnt ++;
 
-		count_mpu++;
-		if(count_mpu >= 10)		// 10ms采集一次
-		{
-			count_mpu = 0;
-			MPU6050_GetData(&AX, &AY, &AZ, &GX, &GY, &GZ);
-			GY -= 12;			// 零点漂移, 以模块具体输出为准
-			AngleAcc = -atan2(AX, AZ) / 3.14159 * 180;			// arctan(x/z) 计算弧度, *(360°/2PI)算出角度
-			AngleGyro = Angle + GY / 32768.0 * 2000 * 0.01;		// 角速度积分得到角度(累加)
-			Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;	// 以陀螺仪角度为主、加速度角度为辅(陀螺仪系数 >> 加速度)
-		}
-	}
-}
+/** MPU6050互补滤波 测试程序 **/
+//volatile uint16_t uart1_SendCnt = 0;	// uart1发送计数器(每隔50ms发送一次数据)
+//int16_t AX, AY, AZ, GX, GY, GZ;					// MPU6050采集的加速度、陀螺仪数据
+//float Angle = 0, AngleAcc = 0 ,AngleGyro = 0;	// 互补角度、 加速度角度、 陀螺仪角度
+//float Alpha = 0.01;								// 互补系数
+
+//int main(void)
+//{
+//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+//	
+//	delay_init();
+//	I2C1_Init();
+//	MPU6050_Init();
+//	usart1_Init(9600);
+//	
+//	TIM6_Init();
+//	
+//	while(1)
+//	{
+//		if(uart1_SendCnt >= 50)
+//		{
+//			uart1_SendCnt = 0;
+
+//			usart1_printf("Acc:[%d, %d, %d]\r\n", AX, AY, AZ);
+//			usart1_printf("Gyro:[%d, %d, %d]\r\n", GX, GY, GZ);
+//			usart1_printf("[plot,%f,%f,%f]\r\n", AngleAcc, AngleGyro, Angle);
+//		}
+//	}
+//}
+//void TIM6_DAC_IRQHandler(void)
+//{
+//	static uint16_t count_mpu = 0;	// MPU采集计时器
+
+//	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+//	{
+//		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+//		
+//		uart1_SendCnt ++;
+
+//		count_mpu++;
+//		if(count_mpu >= 10)		// 10ms采集一次
+//		{
+//			count_mpu = 0;
+//			MPU6050_GetData(&AX, &AY, &AZ, &GX, &GY, &GZ);
+//			GY -= 12;			// 零点漂移, 以模块具体输出为准
+//			AngleAcc = -atan2(AX, AZ) / 3.14159 * 180;			// arctan(x/z) 计算弧度, *(360°/2PI)算出角度
+//			AngleGyro = Angle + GY / 32768.0 * 2000 * 0.01;		// 角速度积分得到角度(累加)
+//			Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;	// 以陀螺仪角度为主、加速度角度为辅(陀螺仪系数 >> 加速度)
+//		}
+//	}
+//}
 
 
 /** USART通信 测试程序 **/
