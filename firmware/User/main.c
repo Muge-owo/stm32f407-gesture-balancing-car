@@ -2,6 +2,7 @@
 #include "stm32f4xx.h"
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 // ****** System ****** //
 #include "delay.h"		// SysTick
@@ -20,26 +21,79 @@
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
 
-/** USART通信 测试程序 **/
+/** MPU6050互补滤波 测试程序 **/
+volatile uint16_t uart1_SendCnt = 0;	// uart1发送计数器(每隔50ms发送一次数据)
+int16_t AX, AY, AZ, GX, GY, GZ;					// MPU6050采集的加速度、陀螺仪数据
+float Angle = 0, AngleAcc = 0 ,AngleGyro = 0;	// 互补角度、 加速度角度、 陀螺仪角度
+float Alpha = 0.01;								// 互补系数
+
 int main(void)
 {
-	usart1_Init(9600);
+	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+	
 	delay_init();
+	I2C1_Init();
+	MPU6050_Init();
+	usart1_Init(9600);
 	
-	uint8_t str[100] = "Hello World\r\n";
+	TIM6_Init();
 	
-	
-	usart1_SendByte('a');
-	usart1_SendArray(str, strlen((char *)str));
-	usart1_printf("KoToShi :%4d \r\n", 2026);
 	while(1)
 	{
-		if(usart1_GetFlag() == 1)
+		if(uart1_SendCnt >= 50)
 		{
-			usart1_printf("RxData: %s\r\n", usart1_rxdata);
+			uart1_SendCnt = 0;
+
+			usart1_printf("Acc:[%d, %d, %d]\r\n", AX, AY, AZ);
+			usart1_printf("Gyro:[%d, %d, %d]\r\n", GX, GY, GZ);
+			usart1_printf("[plot,%f,%f,%f]\r\n", AngleAcc, AngleGyro, Angle);
 		}
 	}
 }
+void TIM6_DAC_IRQHandler(void)
+{
+	static uint16_t count_mpu = 0;	// MPU采集计时器
+
+	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+	{
+		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+		
+		uart1_SendCnt ++;
+
+		count_mpu++;
+		if(count_mpu >= 10)		// 10ms采集一次
+		{
+			count_mpu = 0;
+			MPU6050_GetData(&AX, &AY, &AZ, &GX, &GY, &GZ);
+			GY -= 12;			// 零点漂移, 以模块具体输出为准
+			AngleAcc = -atan2(AX, AZ) / 3.14159 * 180;			// arctan(x/z) 计算弧度, *(360°/2PI)算出角度
+			AngleGyro = Angle + GY / 32768.0 * 2000 * 0.01;		// 角速度积分得到角度(累加)
+			Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;	// 以陀螺仪角度为主、加速度角度为辅(陀螺仪系数 >> 加速度)
+		}
+	}
+}
+
+
+/** USART通信 测试程序 **/
+//int main(void)
+//{
+//	usart1_Init(9600);
+//	delay_init();
+//
+//	uint8_t str[100] = "Hello World\r\n";
+//
+//
+//	usart1_SendByte('a');
+//	usart1_SendArray(str, strlen((char *)str));
+//	usart1_printf("KoToShi :%4d \r\n", 2026);
+//	while(1)
+//	{
+//		if(usart1_GetFlag() == 1)
+//		{
+//			usart1_printf("RxData: %s\r\n", usart1_rxdata);
+//		}
+//	}
+//}
 
 
 /** Encoder编码器与LED引脚冲突问题修复 测试程序 **/

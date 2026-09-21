@@ -24,11 +24,11 @@ uint8_t MPU6050_Init(void)
 	// 六个轴均不待机: 向Power Management 2寄存器(0x6C RM手册P46: 4.37)写入 0x00
 	I2C1_SendByte(MPU6050_ADDR, 0x6C, 0x00);
 	
-	// 0x19: SMPLRT_DIV: 写入0x09 表示 10分频
-	// 0x1A: CONFIG: 写入0x06 表示滤波参数最大(可选0~6)
+	// 0x19: SMPLRT_DIV: 写入0x07 表示 8分频（滤波为0时采样频率为8KHz, 此时8分频, 则MPU6050内部1ms采样一次）
+	// 0x1A: CONFIG: 写入0x00 表示不使用内部滤波(可选0~6)
 	// 0x1B: GYRO_CONFIG: 写入0x18 , AFS_SEL[1:0]位设置为 11, 表示最大量程 (± 2000 °/s)
 	// 0x1C: ACCEL_CONFIG: 写入0x18 , AFS_SEL[1:0]位设置为 11, 表示最大量程 (±16g(1g = 9.8m/s²))
-	uint8_t mpu_configs[4] = {0x09, 0x06, 0x18, 0x18};
+	uint8_t mpu_configs[4] = {0x07, 0x00, 0x18, 0x18};
 	I2C1_SendBytes(MPU6050_ADDR, 0x19, mpu_configs, 4);
 	
 	return 0;
