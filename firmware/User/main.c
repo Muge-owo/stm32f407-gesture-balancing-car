@@ -14,48 +14,83 @@
 
 
 // ****** Hardware ****** //
-#include "led.h"		// PA6\PA7
-#include "key.h"		// PE3\PE4
+#include "led.h"		// PC0
+#include "key.h"		// PC1
 #include "encoder.h"	// TIM4		PB6\PB7		; TIM1		PE9\PE11
 #include "motor.h"		// [TIM5(PA0\PA1)]		PD8\PD9		PD10\PD11
 #include "mpu6050.h"	// [I2C1(PB8\PB9)]
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
 
-/** 蓝牙数据包接收 测试程序 **/
 int main(void)
 {
+	TIM6_Init();
+	Key_Init();
+	LED_Init();
+	delay_init();
 	usart1_Init(9600);
 	
 	while(1)
 	{
-		if(usart1_GetFlag() == 1)
+		if(Key_GetNum() == 1)
 		{
-			usart1_printf("rxdata: %s\r\n", usart1_rxdata);
-			char *Tag = strtok(usart1_rxdata, ",");
-			if(strcmp(Tag, "key") == 0)
-			{
-				char *Name = strtok(NULL, ",");
-				char *Action = strtok(NULL, ",");
-				
-			}
-			else if(strcmp(Tag, "slider") == 0)
-			{
-				char *Name = strtok(NULL, ",");
-				char *Value = strtok(NULL, ",");
+			LED_Toggle();
 			
-			}
-			else if(strcmp(Tag, "joystick") == 0)
+			if(LED_GetState() == 1)
 			{
-				int8_t LH = atoi(strtok(NULL, ","));
-				int8_t LV = atoi(strtok(NULL, ","));
-				int8_t RH = atoi(strtok(NULL, ","));
-				int8_t RV = atoi(strtok(NULL, ","));
-				usart1_printf("joystick:%d, %d, %d, %d\r\n", LH, LV, RH, RV);
+				usart1_printf("LED_ON\r\n");
+			}
+			else
+			{
+				usart1_printf("LED_OFF\r\n");
 			}
 		}
 	}
 }
+void TIM6_DAC_IRQHandler(void)
+{
+	if(TIM_GetITStatus(TIM6, TIM_IT_Update) != RESET)
+	{
+		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+		Key_Tick();
+	}
+}
+
+
+/** 蓝牙数据包接收 测试程序 **/
+//int main(void)
+//{
+//	usart1_Init(9600);
+//	
+//	while(1)
+//	{
+//		if(usart1_GetFlag() == 1)
+//		{
+//			usart1_printf("rxdata: %s\r\n", usart1_rxdata);
+//			char *Tag = strtok(usart1_rxdata, ",");
+//			if(strcmp(Tag, "key") == 0)
+//			{
+//				char *Name = strtok(NULL, ",");
+//				char *Action = strtok(NULL, ",");
+//				
+//			}
+//			else if(strcmp(Tag, "slider") == 0)
+//			{
+//				char *Name = strtok(NULL, ",");
+//				char *Value = strtok(NULL, ",");
+//			
+//			}
+//			else if(strcmp(Tag, "joystick") == 0)
+//			{
+//				int8_t LH = atoi(strtok(NULL, ","));
+//				int8_t LV = atoi(strtok(NULL, ","));
+//				int8_t RH = atoi(strtok(NULL, ","));
+//				int8_t RV = atoi(strtok(NULL, ","));
+//				usart1_printf("joystick:%d, %d, %d, %d\r\n", LH, LV, RH, RV);
+//			}
+//		}
+//	}
+//}
 
 
 /** MPU6050互补滤波 测试程序 **/

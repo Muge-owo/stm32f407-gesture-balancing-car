@@ -3,11 +3,9 @@
 
 #include "stm32f4xx.h"
 
-
 void LED_Init(void);
-void LED1_SetState(uint8_t state);
-void LED1_Toggle(void);
-void LED2_SetState(uint8_t state);
-void LED2_Toggle(void);
+void LED_SetState(uint8_t state);
+void LED_Toggle(void);
+uint8_t LED_GetState(void);
 
 #endif
