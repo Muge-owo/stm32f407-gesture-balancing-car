@@ -36,7 +36,7 @@ void I2C1_Init(void)
 
 uint8_t I2C_WaitEvent(I2C_TypeDef* I2Cx, uint32_t I2C_EVENT)
 {
-	uint32_t Timeout = 10000;
+	uint32_t Timeout = 1000;
 	while(I2C_CheckEvent(I2Cx, I2C_EVENT) != SUCCESS)
 	{
 		Timeout--;
@@ -162,7 +162,7 @@ void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t
 	}
 	
 	I2C_GenerateSTART(I2C1, ENABLE);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT) == 1) return;
 	
 	I2C_Send7bitAddress(I2C1, addr, I2C_Direction_Transmitter);
 	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED);

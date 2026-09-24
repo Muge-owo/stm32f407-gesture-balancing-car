@@ -5,7 +5,7 @@
 #include "stm32f4xx.h"
 
 void Encoder_Init(void);
-int16_t Encoder_GetCNT(uint8_t id);
+int16_t Encoder_GetCNT(uint8_t n);
 
 
 #endif
