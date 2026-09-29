@@ -11,7 +11,7 @@
 #include "i2c.h"		// I2C1		PB8(SCL)\PB9(SDA)
 #include "pwm.h"		// TIM5		PA0(Ch1)\PA1(Ch2)
 #include "uart.h"		// USART1	PA9(TX)\PA10(RX)
-
+						// USART2	PA2(TX)\PA3(RX)
 
 // ****** Hardware ****** //
 #include "led.h"		// PC0
@@ -21,8 +21,7 @@
 #include "mpu6050.h"	// [I2C1(PB8\PB9)]
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
-
-uint8_t mpu_init_state, mpu_read_cnt;
+uint16_t mpu_read_cnt;
 
 int16_t AX, AY, AZ, GX, GY, GZ;
 volatile uint32_t Serial_Cnt = 0;
@@ -37,15 +36,13 @@ int main(void)
 	delay_init();
 	
 	Encoder_Init();
-	usart1_Init(115200);
+	usart2_Init(9600);
 	LED_Init();
 	Key_Init();
 	
 	delay_ms(100);
-	if(MPU6050_Init() == 0){
-		mpu_init_state = 1;
-	}
-	
+	MPU6050_Init();
+
 	while(1)
 	{
 		if(Key_GetNum() == 1)
@@ -54,11 +51,11 @@ int main(void)
 			
 			if(LED_GetState() == 1)
 			{
-				usart1_printf("LED_ON\r\n");
+				usart2_printf("LED_ON\r\n");
 			}
 			else
 			{
-				usart1_printf("LED_OFF\r\n");
+				usart2_printf("LED_OFF\r\n");
 			}
 		}
 		
@@ -67,21 +64,17 @@ int main(void)
 			Serial_Cnt = 0;
 			
 			
-			if(mpu_init_state)
+			if(mpu_status)
 			{
 //				usart1_printf("%d,%d,%d\r\n", AX, AY, AZ);
 //				usart1_printf("%d,%d,%d\r\n", GX, GY, GZ);
-				usart1_printf("%f,%f,%f\r\n", Angle, AngleAcc, AngleGyro);
-			}
-			else
-			{
-				MPU6050_Init();
+				usart2_printf("[plot,%f,%f,%f]\r\n", Angle, AngleAcc, AngleGyro);
 			}
 		}
 
-		if(usart1_GetFlag() == 1)
+		if(usart2_GetFlag() == 1)
 		{
-			usart1_printf("rxdata: %s\r\n", usart1_rxdata);
+			usart2_printf("rxdata: %s\r\n", usart2_rxdata);
 			char *Tag = strtok(usart1_rxdata, ",");
 			if(strcmp(Tag, "key") == 0)
 			{
@@ -101,7 +94,7 @@ int main(void)
 				int8_t LV = atoi(strtok(NULL, ","));
 				int8_t RH = atoi(strtok(NULL, ","));
 				int8_t RV = atoi(strtok(NULL, ","));
-				usart1_printf("joystick:%d, %d, %d, %d\r\n", LH, LV, RH, RV);
+				usart2_printf("joystick:%d, %d, %d, %d\r\n", LH, LV, RH, RV);
 			}
 		}
 	}
@@ -115,14 +108,18 @@ void TIM6_DAC_IRQHandler(void)
 		
 
 		mpu_read_cnt++;
-		if(mpu_read_cnt >= 10)		// 10ms采集一次
+		if(mpu_read_cnt >= 10 && mpu_status)		// 10ms采集一次
 		{
 			mpu_read_cnt = 0;
 			MPU6050_GetData(&AX, &AY, &AZ, &GX, &GY, &GZ);
 			GY -= 12;			// 零点漂移, 以模块具体输出为准
-			AngleAcc = -atan2(AX, AZ) / 3.14159 * 180;			// arctan(x/z) 计算弧度, *(360°/2PI)算出角度
+			AngleAcc = atan2(AX, -AZ) / 3.14159 * 180;			// arctan(x/z) 计算弧度, *(360°/2PI)算出角度
 			AngleGyro = Angle + GY / 32768.0 * 2000 * 0.01;		// 角速度积分得到角度(累加)
 			Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;	// 以陀螺仪角度为主、加速度角度为辅(陀螺仪系数 >> 加速度)
+		}
+		else if(mpu_read_cnt >= 500 && 0==mpu_status)
+		{
+			MPU6050_Init();
 		}
 		Key_Tick();
 	}
@@ -590,7 +587,7 @@ void TIM6_DAC_IRQHandler(void)
 //		GYRO_XOUT = mpuData[8] << 8 | mpuData[9];
 //		GYRO_YOUT = mpuData[10] << 8 | mpuData[11];
 //		GYRO_ZOUT = mpuData[12] << 8 | mpuData[13];
-//		
+//
 //		delay_ms(10);
 //	}
 //}

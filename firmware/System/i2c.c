@@ -48,6 +48,20 @@ uint8_t I2C_WaitEvent(I2C_TypeDef* I2Cx, uint32_t I2C_EVENT)
 	return 0;
 }
 
+uint8_t I2C_WaitFlagStatus(I2C_TypeDef* I2Cx, uint32_t I2C_FLAG)
+{
+	uint32_t Timeout = 1000;
+	while(I2C_GetFlagStatus(I2Cx, I2C_FLAG) != SET)
+	{
+		Timeout--;
+		if(Timeout == 0)
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
 
 /**
 * @brief 给一个从设备的一个寄存器中写入一个字节
@@ -111,35 +125,39 @@ void I2C1_SendBytes(uint8_t addr, uint8_t regAddr, const unsigned char *data, ui
 * @param (in)addr: 从设备地址
 * @param (in)regAddr: 要读取的寄存器地址
 */
-uint8_t I2C1_ReadByte(uint8_t addr, uint8_t regAddr)
+uint8_t I2C1_ReadByte(uint8_t addr, uint8_t regAddr, unsigned char *data)
 {
-	uint8_t Data;
-	
 	I2C_GenerateSTART(I2C1, ENABLE);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT);
-	
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT))
+		return 1;
+
 	I2C_Send7bitAddress(I2C1, addr, I2C_Direction_Transmitter);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
+		return 2;
 	
 	I2C_SendData(I2C1, regAddr);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
+		return 3;
 	
 	I2C_GenerateSTART(I2C1, ENABLE);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT))
+		return 4;
 	
 	I2C_Send7bitAddress(I2C1, addr, I2C_Direction_Receiver);
 	
 	I2C_AcknowledgeConfig(I2C1, DISABLE);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED))
+		return 5;
 	
 	I2C_GenerateSTOP(I2C1, ENABLE);
 
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_RECEIVED);
-	Data = I2C_ReceiveData(I2C1);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_RECEIVED))
+		return 6;
+	*data = I2C_ReceiveData(I2C1);
 	
 	I2C_AcknowledgeConfig(I2C1, ENABLE);
 	
-	return Data;
+	return 0;
 }
 
 /**
@@ -149,35 +167,39 @@ uint8_t I2C1_ReadByte(uint8_t addr, uint8_t regAddr)
 * @param (out)data: 存放数据的数组
 * @param (in)data_len: 要写入的数据长度
 */
-void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t data_len)
+uint8_t I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t data_len)
 {
 	if(data_len == 0)
 	{
-		return ;
+		return 1;
 	}
 	else if(data_len == 1)
 	{
-		data[0] = I2C1_ReadByte(addr, regAddr);
-		return ;
+		return I2C1_ReadByte(addr, regAddr, data+0);
 	}
 	
 	I2C_GenerateSTART(I2C1, ENABLE);
-	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT) == 1) return;
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT))
+		return 2;
 	
 	I2C_Send7bitAddress(I2C1, addr, I2C_Direction_Transmitter);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED))
+		return 3;
 	
 	I2C_SendData(I2C1, regAddr);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED))
+		return 4;
 	
 	I2C_GenerateSTART(I2C1, ENABLE);
-	I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT);
+	if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_MODE_SELECT))
+		return 5;
 	
 	I2C_Send7bitAddress(I2C1, addr, I2C_Direction_Receiver);
 	
 	if(data_len <= 2)
 	{
-		while(I2C_GetFlagStatus(I2C1, I2C_FLAG_ADDR) == RESET);
+		if(I2C_WaitFlagStatus(I2C1, I2C_FLAG_ADDR))
+				return 8;
 		I2C_AcknowledgeConfig(I2C1, DISABLE);
 		I2C_NACKPositionConfig(I2C1, I2C_NACKPosition_Next);
 
@@ -185,7 +207,8 @@ void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t
 		(void)I2C1->SR1;
 		(void)I2C1->SR2;
 		
-		while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BTF) == RESET);
+		if(I2C_WaitFlagStatus(I2C1, I2C_FLAG_BTF))
+				return 9;
 		I2C_GenerateSTOP(I2C1, ENABLE);
 		
 		data[0] = I2C_ReceiveData(I2C1);
@@ -195,21 +218,25 @@ void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t
 	}
 	else
 	{
-		I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED);
+		if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED))
+			return 6;
 
 		for(int i = 0; i < data_len - 3; i++)
 		{
-			I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_RECEIVED);
+			if(I2C_WaitEvent(I2C1, I2C_EVENT_MASTER_BYTE_RECEIVED))
+				return 7;
 			data[i] = I2C_ReceiveData(I2C1);
 		}
 		
-		while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BTF) == RESET);
+		if(I2C_WaitFlagStatus(I2C1, I2C_FLAG_BTF))
+				return 10;
 		
 		I2C_AcknowledgeConfig(I2C1, DISABLE);
 		
 		data[data_len - 3] = I2C_ReceiveData(I2C1);
 		
-		while(I2C_GetFlagStatus(I2C1, I2C_FLAG_BTF) == RESET);
+		if(I2C_WaitFlagStatus(I2C1, I2C_FLAG_BTF))
+				return 11;
 		
 		I2C_GenerateSTOP(I2C1, ENABLE);
 		
@@ -218,4 +245,6 @@ void I2C1_ReadBytes(uint8_t addr, uint8_t regAddr, unsigned char *data, uint32_t
 	}
 
 	I2C_AcknowledgeConfig(I2C1, ENABLE);
+	
+	return 0;
 }
