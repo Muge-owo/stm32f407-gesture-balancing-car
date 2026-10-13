@@ -22,7 +22,8 @@
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
 
-#define MPU_ENDABE 0
+#define MPU_ENDABE 	0
+#define OLED_ENABLE 0
 
 uint16_t mpu_read_cnt;
 
@@ -38,18 +39,23 @@ int main(void)
 	TIM6_Init();
 	delay_init();
 	
+	Motor_Init();
 	Encoder_Init();
 	usart2_Init(9600);
 	LED_Init();
 	Key_Init();
 	
 	delay_ms(100);
-	
 	if(MPU_ENDABE)
 		MPU6050_Init();
+	if(OLED_ENABLE)
+		OLED_Init();
 
+	int16_t encoder1_cnt = 0;
+	int16_t encoder2_cnt = 0;
 	while(1)
 	{
+		
 		if(Key_GetNum() == 1)
 		{
 			LED_Toggle();
@@ -68,11 +74,12 @@ int main(void)
 		{
 			Serial_Cnt = 0;
 			
-			
+			encoder1_cnt = Encoder_GetCNT(1);
+			encoder2_cnt = Encoder_GetCNT(2);
+			usart2_printf("%d, %d\r\n", encoder1_cnt, encoder2_cnt);
+				
 			if(MPU_ENDABE && mpu_status)
 			{
-//				usart1_printf("%d,%d,%d\r\n", AX, AY, AZ);
-//				usart1_printf("%d,%d,%d\r\n", GX, GY, GZ);
 				usart2_printf("[plot,%f,%f,%f]\r\n", Angle, AngleAcc, AngleGyro);
 //				usart2_printf("%f,%f,%f\r\n", Angle, AngleAcc, AngleGyro);
 			}
@@ -97,12 +104,32 @@ int main(void)
 						LED_SetState(1);
 					}
 				}
+				
+				if(strcmp(Name, "motor") == 0)
+				{
+					if(strcmp(Action, "up") == 0)
+					{
+						Morot_SetState(0);
+					}
+					else if(strcmp(Action, "down") == 0)
+					{
+						Morot_SetState(1);
+					}
+				}
 			}
 			else if(strcmp(Tag, "slider") == 0)
 			{
 				char *Name = strtok(NULL, ",");
 				char *Value = strtok(NULL, ",");
-			
+				
+				if(strcmp(Name, "motor1") == 0)
+				{
+					Motor_SetPWM(1, atoi(Value));
+				}
+				else if(strcmp(Name, "motor2") == 0)
+				{
+					Motor_SetPWM(2, atoi(Value));
+				}
 			}
 			else if(strcmp(Tag, "joystick") == 0)
 			{
