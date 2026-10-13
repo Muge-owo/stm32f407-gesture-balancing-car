@@ -6,6 +6,6 @@
 
 void Motor_Init(void);
 void Motor_SetPWM(uint8_t id, int16_t pwm);
-
+void Morot_SetState(uint8_t state);
 
 #endif
