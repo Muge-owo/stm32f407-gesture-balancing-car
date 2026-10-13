@@ -21,8 +21,8 @@ void PWM_Init(void)
 	TIM_TimeBaseStructInit(&TIM_TimeBaseInitStructure);
 	TIM_TimeBaseInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 	TIM_TimeBaseInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseInitStructure.TIM_Period = 1000 - 1;
-	TIM_TimeBaseInitStructure.TIM_Prescaler = 84 - 1;
+	TIM_TimeBaseInitStructure.TIM_Period = 100 - 1;
+	TIM_TimeBaseInitStructure.TIM_Prescaler = 840 - 1;
 	TIM_TimeBaseInit(TIM8, &TIM_TimeBaseInitStructure);
 
 	TIM_OCInitTypeDef TIM_OCInitStructure;

@@ -29,7 +29,7 @@ void Key_Tick(void)
 	static uint8_t CurrentState = 0, PreviousState = 0;
 
 	Count++;
-	if(Count >= 15)
+	if(Count >= 20)
 	{
 		Count = 0;
 	
