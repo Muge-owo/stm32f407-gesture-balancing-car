@@ -21,6 +21,9 @@
 #include "mpu6050.h"	// [I2C1(PB8\PB9)]
 #include "oled.h"		// [I2C1(PB8\PB9)]
 
+
+#define MPU_ENDABE 0
+
 uint16_t mpu_read_cnt;
 
 int16_t AX, AY, AZ, GX, GY, GZ;
@@ -41,7 +44,9 @@ int main(void)
 	Key_Init();
 	
 	delay_ms(100);
-	MPU6050_Init();
+	
+	if(MPU_ENDABE)
+		MPU6050_Init();
 
 	while(1)
 	{
@@ -64,23 +69,34 @@ int main(void)
 			Serial_Cnt = 0;
 			
 			
-			if(mpu_status)
+			if(MPU_ENDABE && mpu_status)
 			{
 //				usart1_printf("%d,%d,%d\r\n", AX, AY, AZ);
 //				usart1_printf("%d,%d,%d\r\n", GX, GY, GZ);
 				usart2_printf("[plot,%f,%f,%f]\r\n", Angle, AngleAcc, AngleGyro);
+//				usart2_printf("%f,%f,%f\r\n", Angle, AngleAcc, AngleGyro);
 			}
 		}
 
 		if(usart2_GetFlag() == 1)
 		{
 			usart2_printf("rxdata: %s\r\n", usart2_rxdata);
-			char *Tag = strtok(usart1_rxdata, ",");
+			char *Tag = strtok(usart2_rxdata, ",");
 			if(strcmp(Tag, "key") == 0)
 			{
 				char *Name = strtok(NULL, ",");
 				char *Action = strtok(NULL, ",");
-				
+				if(strcmp(Name, "Led") == 0)
+				{
+					if(strcmp(Action, "up") == 0)
+					{
+						LED_SetState(0);
+					}
+					else if(strcmp(Action, "down") == 0)
+					{
+						LED_SetState(1);
+					}
+				}
 			}
 			else if(strcmp(Tag, "slider") == 0)
 			{
@@ -106,8 +122,8 @@ void TIM6_DAC_IRQHandler(void)
 		TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
 		Serial_Cnt++;
 		
-
-		mpu_read_cnt++;
+		if(MPU_ENDABE)
+			mpu_read_cnt++;
 		if(mpu_read_cnt >= 10 && mpu_status)		// 10ms采集一次
 		{
 			mpu_read_cnt = 0;
@@ -121,6 +137,8 @@ void TIM6_DAC_IRQHandler(void)
 		{
 			MPU6050_Init();
 		}
+		
+		
 		Key_Tick();
 	}
 }

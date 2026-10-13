@@ -221,7 +221,7 @@ void USART2_IRQHandler(void)
 	{
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		
-		data = USART_ReceiveData(USART1);
+		data = USART_ReceiveData(USART2);
 		if(data == '[' && usart2_rxstate == 0)
 		{
 			usart2_rxstate = 1;
@@ -230,7 +230,7 @@ void USART2_IRQHandler(void)
 		{
 			if(data != ']')
 			{
-				usart2_rxdata[usart1_rxcnt++] = data;
+				usart2_rxdata[usart2_rxcnt++] = data;
 				if(usart2_rxcnt >= USART2_RXBUF_SIZE - 1)
 				{
 					usart2_rxstate = 0;
