@@ -43,7 +43,7 @@ void Encoder_Init(void)
 	TIM_ICInit(TIM3, &TIM_ICInitStrcuture);
 	TIM_ICInit(TIM4, &TIM_ICInitStrcuture);
 	
-	TIM_EncoderInterfaceConfig(TIM3, TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
+	TIM_EncoderInterfaceConfig(TIM3, TIM_EncoderMode_TI12, TIM_ICPolarity_Falling, TIM_ICPolarity_Rising);
 	TIM_EncoderInterfaceConfig(TIM4, TIM_EncoderMode_TI12, TIM_ICPolarity_Rising, TIM_ICPolarity_Rising);
 
 	TIM_Cmd(TIM3, ENABLE);
